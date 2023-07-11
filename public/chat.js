@@ -1,9 +1,10 @@
 const sendButton = document.getElementById('send-button')
 const messageInput = document.getElementById('message-input')
-const chatbox=document.getElementById('chat-container')
+
 
 function displayMessages(messages){
     const chatMessageElement=document.getElementById('chat-messages')
+    chatMessageElement.innerHTML=""
     messages.forEach(msg=>{
         const messageElement=document.createElement('div')
         messageElement.textContent=`${msg.sender} : ${msg.message}`
@@ -16,6 +17,7 @@ async function getMessage(){
         const response=await axios.get("http://localhost:3000/user/getmessage")
         let messages=response.data.messages
         displayMessages(messages)
+        setTimeout(getMessage, 1000)
     }
     catch(err){
         console.log(err)
@@ -42,6 +44,6 @@ sendButton.addEventListener('click',(e)=>{
     
     addMessage(message)
 
-    message=""
+    messageInput.value=""
 })
 getMessage()
