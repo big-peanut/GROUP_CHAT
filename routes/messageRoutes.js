@@ -4,6 +4,7 @@ const messageController=require('../controllers/messageController')
 
 const router=express.Router()
 
-router.post('/user/message',userauthenticate.authenticate,messageController.addMessage)
+router.post('/user/addmessage',userauthenticate.authenticate,messageController.addMessage)
+router.get('/user/getmessage',messageController.getMessage)
 
 module.exports=router
