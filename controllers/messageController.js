@@ -1,6 +1,7 @@
 const Messages = require('../models/message')
 const Users = require('../models/user')
 const sequelize = require('../util/db')
+const { Op } = require('sequelize');
 
 exports.addMessage = async (req, res, next) => {
     try {
@@ -18,17 +19,21 @@ exports.addMessage = async (req, res, next) => {
 
 exports.getMessage = async (req, res, next) => {
     try {
+        const lastMsgId = req.query.lastmsgid || 0; // Get the last message ID from the query parameter
         const messages = await Messages.findAll({
+            where: {
+                id: { [Op.gt]: lastMsgId }, // Fetch messages with ID greater than lastMsgId
+            },
             include: [
                 {
                     model: Users,
                     attributes: ['name'],
                 },
             ],
+            order: [['id', 'ASC']]
         });
 
-    
-        const formattedMessages = messages.map(message => ({
+        const formattedMessages = messages.map((message) => ({
             id: message.id,
             message: message.message,
             sender: message.user.name,
@@ -37,6 +42,6 @@ exports.getMessage = async (req, res, next) => {
         res.json({ messages: formattedMessages });
     } catch (err) {
         console.log(err);
-        res.status(500).json({ error: "Failed to get messages" });
+        res.status(500).json({ error: 'Failed to get messages' });
     }
-}
+};
