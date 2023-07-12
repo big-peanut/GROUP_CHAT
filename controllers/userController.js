@@ -56,3 +56,15 @@ exports.login = async (req, res, next) => {
         res.status(500).json({ error: "Failed to login" });
     }
 };
+
+
+exports.getUsers = async (req, res, next) => {
+    try {
+      const users = await Users.findAll();
+      res.status(200).json({ users });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: 'Failed to fetch users' });
+    }
+  };
+  

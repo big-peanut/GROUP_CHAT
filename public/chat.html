@@ -10,6 +10,16 @@
 </head>
 
 <body>
+    <div class="sidebar">
+        <h2>Groups</h2>
+        <ul id="group-list"></ul>
+    </div>
+
+    <div class="users-container">
+        <h2>Users</h2>
+        <div id="user-list"></div>
+    </div>
+
     <div class="chat-container">
         <div id="chat-messages"></div>
         <div class="chat-input">
@@ -17,6 +27,12 @@
             <button id="send-button">Send</button>
         </div>
     </div>
+
+    <div class="create-group-container">
+        <input type="text" id="group-input" placeholder="Enter group name">
+        <button id="create-group-button">Create Group</button>
+    </div>
+
     <script src="chat.js"></script>
 </body>
 

@@ -1,9 +1,123 @@
 const sendButton = document.getElementById('send-button');
 const messageInput = document.getElementById('message-input');
+const createGroupButton = document.getElementById('create-group-button')
+const groupInput = document.getElementById('group-input')
+const groupList = document.getElementById('group-list')
 
 const MAX_STORED_CHATS = 10; // Maximum number of chats to store in local storage
 
 let lastMsgId = 0; // Last retrieved message ID
+
+function displayUsers(users) {
+    const userListElement = document.getElementById('user-list');
+    userListElement.innerHTML = '';
+
+    for (let i = 0; i < users.length; i++) {
+        const userElement = document.createElement('div');
+        userElement.textContent = users[i].name;
+
+        userListElement.appendChild(userElement);
+    }
+}
+
+async function getUsers() {
+    const response = await axios.get('http://localhost:3000/getusers')
+    displayUsers(response.data.users)
+}
+
+function inviteMembers() {
+    const userName = prompt('Enter the name of the user to invite:');
+    if (userName) {
+        const groupId = event.target.getAttribute('data-group-id');
+        console.log(groupId)
+        try {
+            const token = localStorage.getItem('token');
+            axios.post(`http://localhost:3000/invite/${groupId}`, { userName }, {
+                headers: { 'Authorization': token },
+            });
+            alert('User invited successfully.');
+        } catch (error) {
+            console.log(error);
+        }
+    }
+}
+
+
+function enterGroup() {
+    console.log("hello")
+}
+
+async function deleteGroup(event) {
+    const groupId = event.target.getAttribute('data-group-id');
+    try {
+        const token = localStorage.getItem('token');
+        await axios.delete(`http://localhost:3000/deletegroup/${groupId}`, {
+            headers: { 'Authorization': token },
+        });
+        getGroups(); // Fetch and display the updated group list
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+function displayGroups(groups) {
+    groupList.innerHTML = '';
+    groups.forEach((group) => {
+        const listItem = document.createElement('li');
+        listItem.textContent = group.name;
+        listItem.classList.add('group-item'); // Add a class to the list item
+
+        // Create an "Enter Group" button
+        const enterGroupButton = document.createElement('button');
+        enterGroupButton.textContent = 'Enter Group';
+        enterGroupButton.setAttribute('data-group-id', group.id);
+        enterGroupButton.addEventListener('click', enterGroup); // Add event listener for the button
+
+        // Create an "Invite Members" button
+        const inviteMembersButton = document.createElement('button');
+        inviteMembersButton.textContent = 'Invite Members';
+        inviteMembersButton.setAttribute('data-group-id', group.id);
+        inviteMembersButton.addEventListener('click', inviteMembers); // Add event listener for the button
+
+        // Create a delete button
+        const deleteButton = document.createElement('button');
+        deleteButton.textContent = 'Delete';
+        deleteButton.setAttribute('data-group-id', group.id);
+        deleteButton.addEventListener('click', deleteGroup); // Add event listener for the button
+
+        listItem.appendChild(enterGroupButton);
+        listItem.appendChild(inviteMembersButton);
+        listItem.appendChild(deleteButton);
+        groupList.appendChild(listItem);
+    });
+}
+
+
+
+
+async function getGroups() {
+    try {
+        const response = await axios.get('http://localhost:3000/getgroup')
+        displayGroups(response.data.groups)
+    }
+    catch (err) {
+        console.log(err)
+    }
+}
+
+createGroupButton.addEventListener('click', async (e) => {
+    e.preventDefault()
+
+    var groupName = groupInput.value
+    try {
+        const token = localStorage.getItem('token')
+        await axios.post('http://localhost:3000/creategroup', { group_name: groupName }, { headers: { 'Authorization': token } })
+        getGroups()
+    }
+    catch (err) {
+        console.log(err)
+    }
+})
 
 function displayMessages(messages) {
     const chatMessageElement = document.getElementById('chat-messages');
@@ -87,4 +201,6 @@ document.addEventListener('DOMContentLoaded', () => {
         displayMessages(storedChats);
     }
     getMessage();
+    getGroups()
+    getUsers()
 });
