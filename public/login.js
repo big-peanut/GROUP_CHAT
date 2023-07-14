@@ -8,7 +8,7 @@ async function login(email,password){
         };
 
         const response = await axios.post("http://localhost:3000/user/login", user);
-
+        console.log(response)
         if (response.data.message) {
             alert("User login successful");
             localStorage.setItem('token', response.data.token)

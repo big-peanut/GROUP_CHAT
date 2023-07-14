@@ -3,13 +3,62 @@ const messageInput = document.getElementById('message-input');
 const createGroupButton = document.getElementById('create-group-button')
 const groupInput = document.getElementById('group-input')
 const groupList = document.getElementById('group-list')
+const chatMessageElement = document.getElementById('chat-messages');
+const userListElement = document.getElementById('user-list');
 
-const MAX_STORED_CHATS = 10; // Maximum number of chats to store in local storage
+let selectedGroupId = null;
 
-let lastMsgId = 0; // Last retrieved message ID
+async function removeGroupMember(userId) {
+    try {
+        const token = localStorage.getItem('token');
+        await axios.delete(
+            `http://localhost:3000/removegroupmember/${selectedGroupId}/${userId}`,
+            {
+                headers: { 'Authorization': token },
+            }
+        );
+        alert('Group member removed successfully');
+        // Update group users after removing the member
+        await displayGroupUsers(selectedGroupId);
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+async function makeGroupMemberAdmin(userId) {
+    try {
+        const token = localStorage.getItem('token');
+        await axios.put(
+            `http://localhost:3000/makegroupmemberadmin/${selectedGroupId}/${userId}`,
+            {},
+            {
+                headers: { 'Authorization': token },
+            }
+        );
+        alert('Group member is now an admin');
+        // Update group users after making the member an admin
+        await displayGroupUsers(selectedGroupId);
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+async function addGroupMessage(groupId, message) {
+    try {
+        const token = localStorage.getItem('token');
+        await axios.post(
+            `http://localhost:3000/addgroupmessage/${groupId}`,
+            { message },
+            {
+                headers: { 'Authorization': token },
+            }
+        );
+    } catch (error) {
+        console.log(error);
+    }
+}
 
 function displayUsers(users) {
-    const userListElement = document.getElementById('user-list');
     userListElement.innerHTML = '';
 
     for (let i = 0; i < users.length; i++) {
@@ -21,21 +70,27 @@ function displayUsers(users) {
 }
 
 async function getUsers() {
-    const response = await axios.get('http://localhost:3000/getusers')
-    displayUsers(response.data.users)
+    const response = await axios.get('http://localhost:3000/getusers');
+    displayUsers(response.data.users);
 }
 
-function inviteMembers() {
+async function inviteMembers() {
     const userName = prompt('Enter the name of the user to invite:');
     if (userName) {
         const groupId = event.target.getAttribute('data-group-id');
-        console.log(groupId)
+        console.log(groupId);
         try {
             const token = localStorage.getItem('token');
-            axios.post(`http://localhost:3000/invite/${groupId}`, { userName }, {
-                headers: { 'Authorization': token },
-            });
+            await axios.post(
+                `http://localhost:3000/invite/${groupId}`,
+                { userName },
+                {
+                    headers: { 'Authorization': token },
+                }
+            );
             alert('User invited successfully.');
+            // Update group users after inviting a member
+            await displayGroupUsers(groupId);
         } catch (error) {
             console.log(error);
         }
@@ -43,9 +98,126 @@ function inviteMembers() {
 }
 
 
-function enterGroup() {
-    console.log("hello")
+function clearChatMessages() {
+    chatMessageElement.innerHTML = ''; // Clear chat messages
 }
+
+async function displayGroupUsers(groupId) {
+    try {
+        const response = await axios.get(
+            `http://localhost:3000/getgroupusers/${groupId}`
+        );
+        const groupUsers = response.data.users;
+        const groupUsersContainer = document.getElementById('group-users');
+        groupUsersContainer.innerHTML = '';
+
+        for (let i = 0; i < groupUsers.length; i++) {
+            const user = groupUsers[i];
+            const userElement = document.createElement('div');
+            userElement.textContent = user.name;
+
+            if (user.is_admin) {
+                // Display "Admin" next to group admins
+                const adminLabel = document.createElement('span');
+                adminLabel.textContent = '   (Admin)';
+                adminLabel.classList.add('admin-label');
+                userElement.appendChild(adminLabel);
+
+                // Show the leave group button for admins
+                const leaveGroupButton = document.createElement('button');
+                leaveGroupButton.textContent = 'Leave Group';
+                leaveGroupButton.addEventListener('click', () => {
+                    removeGroupMember(user.id);
+                });
+                userElement.appendChild(leaveGroupButton);
+            }
+
+            if (!user.is_admin) {
+                // User is not an admin, show the make admin button
+                const makeAdminButton = document.createElement('button');
+                makeAdminButton.textContent = 'Make Admin';
+                makeAdminButton.addEventListener('click', () => {
+                    makeGroupMemberAdmin(user.id);
+                });
+                userElement.appendChild(makeAdminButton);
+
+                // Show the remove button for non-admin users
+                const removeButton = document.createElement('button');
+                removeButton.textContent = 'Remove';
+                removeButton.addEventListener('click', () => {
+                    removeGroupMember(user.id);
+                });
+                userElement.appendChild(removeButton);
+            }
+
+            groupUsersContainer.appendChild(userElement);
+        }
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+
+
+
+async function checkGroupMembership(groupId) {
+    try {
+        const token = localStorage.getItem('token');
+        const response = await axios.get(
+            `http://localhost:3000/checkgroupmembership/${groupId}`,
+            {
+                headers: { 'Authorization': token },
+            }
+        );
+        return response.data.isMember;
+    } catch (error) {
+        console.log(error);
+        return false;
+    }
+}
+
+function displayGroupMessages(messages) {
+    chatMessageElement.innerHTML = ''; // Clear chat messages
+
+    messages.forEach((msg) => {
+        const messageElement = document.createElement('div');
+        messageElement.textContent = `${msg.sender}: ${msg.message}`;
+        messageElement.setAttribute('data-id', msg.id);
+        chatMessageElement.appendChild(messageElement);
+    });
+}
+
+async function getGroupMessages(groupId) {
+    clearChatMessages();
+    try {
+        const token = localStorage.getItem('token');
+        const response = await axios.get(
+            `http://localhost:3000/getgroupmessages/${groupId}`,
+            {
+                headers: { 'Authorization': token },
+            }
+        );
+        const msg = response.data.messages;
+        displayGroupMessages(msg);
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+async function enterGroup(event) {
+    selectedGroupId = event.target.getAttribute('data-group-id');
+
+    // Check if the user is a member of the group
+    const isMember = await checkGroupMembership(selectedGroupId);
+
+    if (isMember) {
+        await getGroupMessages(selectedGroupId);
+        await displayGroupUsers(selectedGroupId);
+    } else {
+        alert('You need to be a member of the group to enter.');
+    }
+}
+
 
 async function deleteGroup(event) {
     const groupId = event.target.getAttribute('data-group-id');
@@ -92,38 +264,36 @@ function displayGroups(groups) {
     });
 }
 
-
-
-
 async function getGroups() {
     try {
-        const response = await axios.get('http://localhost:3000/getgroup')
-        displayGroups(response.data.groups)
-    }
-    catch (err) {
-        console.log(err)
+        const response = await axios.get('http://localhost:3000/getgroup');
+        displayGroups(response.data.groups);
+    } catch (err) {
+        console.log(err);
     }
 }
 
 createGroupButton.addEventListener('click', async (e) => {
-    e.preventDefault()
-
-    var groupName = groupInput.value
+    e.preventDefault();
+    var groupName = groupInput.value;
     try {
-        const token = localStorage.getItem('token')
-        await axios.post('http://localhost:3000/creategroup', { group_name: groupName }, { headers: { 'Authorization': token } })
-        getGroups()
+        const token = localStorage.getItem('token');
+        await axios.post(
+            'http://localhost:3000/creategroup',
+            { group_name: groupName },
+            { headers: { 'Authorization': token } }
+        );
+        getGroups();
+    } catch (err) {
+        console.log(err);
     }
-    catch (err) {
-        console.log(err)
-    }
-})
+});
 
 function displayMessages(messages) {
-    const chatMessageElement = document.getElementById('chat-messages');
+    chatMessageElement.innerHTML = ''
     messages.forEach((msg) => {
-        const existingMessage = chatMessageElement.querySelector(`[data-id="${msg.id}"]`);
-        if (!existingMessage) {
+        if (!msg.group_id) {
+            // Filter out group messages
             const messageElement = document.createElement('div');
             messageElement.textContent = `${msg.sender}: ${msg.message}`;
             messageElement.setAttribute('data-id', msg.id);
@@ -134,15 +304,11 @@ function displayMessages(messages) {
 
 async function getMessage() {
     try {
-        const url = `http://localhost:3000/user/getmessage?lastmsgid=${lastMsgId}`;
-        const response = await axios.get(url);
+        const response = await axios.get('http://localhost:3000/user/getmessage');
         const messages = response.data.messages;
         if (messages.length > 0) {
-            lastMsgId = messages[messages.length - 1].id; // Update the last retrieved message ID
             displayMessages(messages);
-            updateLocalChats(messages);
         }
-        setTimeout(getMessage, 1000);
     } catch (err) {
         console.log(err);
     }
@@ -150,38 +316,23 @@ async function getMessage() {
 
 async function addMessage(message) {
     try {
-        let msg = {
-            message,
-        };
-        const token = localStorage.getItem('token');
-        await axios.post('http://localhost:3000/user/addmessage', msg, {
-            headers: { Authorization: token },
-        });
+        const groupId = selectedGroupId; // Get the currently selected group ID
+
+        if (groupId) {
+            addGroupMessage(groupId, message);
+        } else {
+            const token = localStorage.getItem('token');
+            await axios.post(
+                'http://localhost:3000/user/addmessage',
+                { message },
+                {
+                    headers: { 'Authorization': token },
+                }
+            );
+        }
     } catch (err) {
         console.log(err);
     }
-}
-
-function updateLocalChats(messages) {
-    let storedChats = getLocalChats();
-    messages.forEach((msg) => {
-        const existingChat = storedChats.find((chat) => chat.id === msg.id);
-        if (!existingChat) {
-            storedChats.push(msg);
-        }
-    });
-    if (storedChats.length > MAX_STORED_CHATS) {
-        storedChats = storedChats.slice(storedChats.length - MAX_STORED_CHATS);
-    }
-    localStorage.setItem('chats', JSON.stringify(storedChats));
-}
-
-function getLocalChats() {
-    const storedChats = localStorage.getItem('chats');
-    if (storedChats) {
-        return JSON.parse(storedChats);
-    }
-    return [];
 }
 
 sendButton.addEventListener('click', (e) => {
@@ -195,12 +346,8 @@ sendButton.addEventListener('click', (e) => {
 });
 
 document.addEventListener('DOMContentLoaded', () => {
-    const storedChats = getLocalChats();
-    if (storedChats.length > 0) {
-        lastMsgId = storedChats[storedChats.length - 1].id;
-        displayMessages(storedChats);
-    }
-    getMessage();
-    getGroups()
-    getUsers()
+    getMessage()
+    getGroups();
+    getUsers();
 });
+getMessage()

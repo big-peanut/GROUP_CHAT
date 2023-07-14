@@ -1,5 +1,6 @@
 const Sequelize = require('sequelize');
 const sequelize = require('../util/db');
+const Groups=require('../models/group')
 
 const Messages = sequelize.define('messages', {
   id: {
@@ -25,5 +26,7 @@ const Messages = sequelize.define('messages', {
     }
   }
 });
+
+Messages.belongsTo(Groups, { foreignKey: 'group_id' });
 
 module.exports = Messages;

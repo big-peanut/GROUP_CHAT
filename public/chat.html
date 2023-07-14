@@ -13,11 +13,21 @@
     <div class="sidebar">
         <h2>Groups</h2>
         <ul id="group-list"></ul>
+        <button id="logout-button">Logout</button>
+    </div>
+
+    <div class="users-container">
+        <h2>Group Users</h2>
+        <div id="group-users"></div>
     </div>
 
     <div class="users-container">
         <h2>Users</h2>
         <div id="user-list"></div>
+    </div>
+
+    <div id="admin-features">
+        <!-- Add your admin-related UI elements here -->
     </div>
 
     <div class="chat-container">
@@ -32,6 +42,19 @@
         <input type="text" id="group-input" placeholder="Enter group name">
         <button id="create-group-button">Create Group</button>
     </div>
+
+    <script>
+        const logoutButton = document.getElementById('logout-button');
+
+        logoutButton.addEventListener('click', () => {
+            const confirmLogout = confirm('Are you sure you want to logout?');
+
+            if (confirmLogout) {
+                // Redirect to login page
+                window.location.href = 'login.html';
+            }
+        });
+    </script>
 
     <script src="chat.js"></script>
 </body>
