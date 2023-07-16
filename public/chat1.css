@@ -1,0 +1,225 @@
+body {
+    background-color: #f2f2f2;
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    position: relative;
+    /* Add position relative to the body */
+}
+
+.chat-container {
+    width: 400px;
+    position: absolute;
+    top: 20px;
+    /* Adjust the top position as needed */
+    left: 20px;
+    /* Adjust the left position as needed */
+    background-color: #fff;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    z-index: 1;
+    margin-left: 400px;
+    margin-top: 100px;
+    /* Ensure the chat container is on top */
+}
+
+.chat-box {
+    flex: 1;
+    padding: 10px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.message {
+    margin-bottom: 10px;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.incoming {
+    background-color: #8e96e4;
+    text-align: right;
+    border-radius: 15px;
+}
+
+.outgoing {
+    background-color: #50e96a;
+    text-align: left;
+    border-radius: 15px;
+}
+
+.message-content {
+    color: #333;
+}
+
+.message-input {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    background-color: #f2f2f2;
+    border-top: 1px solid #ccc;
+}
+
+#message-input {
+    flex: 1;
+    padding: 5px;
+    border: none;
+    border-radius: 15px;
+    resize: none;
+}
+
+#send-button {
+    margin-left: 10px;
+    padding: 5px 10px;
+    background-color: #4CAF50;
+    color: #fff;
+    border: none;
+    border-radius: 15px;
+    cursor: pointer;
+}
+
+#send-button:hover {
+    background-color: #45a049;
+}
+
+.create-group {
+    display: flex;
+    align-items: center;
+    margin-top: 10px;
+    margin-left: 50px;
+}
+
+#create-group-button {
+    margin-left: 10px;
+    padding: 5px 10px;
+    background-color: #4CAF50;
+    color: #fff;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    border-radius: 15px;
+}
+
+#create-group-button:hover {
+    background-color: #45a049;
+}
+
+#group-name-input {
+    border-radius: 15px;
+    height: 15px;
+}
+
+.users-list {
+    width: 150px;
+    position: absolute;
+    top: 20px;
+    /* Adjust the top position as needed */
+    right: 20px;
+    /* Adjust the right position as needed */
+    background-color: #badfdf;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    padding: 5px;
+    z-index: 1;
+    /* Ensure the user list is on top */
+}
+
+.users-list-heading {
+    font-weight: bold;
+    margin-bottom: 20px;
+    margin-left: 40px;
+}
+
+.groups-list {
+    width: 350px;
+    /* Increase the width to accommodate the buttons */
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background-color: #ffd180;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    padding: 5px;
+    z-index: 1;
+}
+
+.users-list {
+    width: 150px;
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background-color: #badfdf;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    padding: 5px;
+    z-index: 1;
+}
+
+.group button {
+    margin: 5px 0;
+    padding: 5px 10px;
+    background-color: #4CAF50;
+    color: #fff;
+    border: none;
+    border-radius: 15px;
+    cursor: pointer;
+}
+
+.group button:hover {
+    background-color: #45a049;
+}
+
+.group button:first-child {
+    margin-top: 10px;
+}
+
+.group button:last-child {
+    margin-bottom: 10px;
+}
+
+.users-container {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    /* Same right value as .groups-list */
+    background-color: #badfdf;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    padding: 10px;
+    z-index: 1;
+    margin-top: 230px;
+    /* Adjust the margin-top to create space below the group list */
+    margin-right: 52px;
+}
+
+.users-container h2 {
+    margin-bottom: 10px;
+}
+
+#group-users {
+    margin-top: 10px;
+}
+
+.admin-label {
+    font-weight: bold;
+    color: #ff5722;
+    /* Choose your desired color for admin label */
+    margin-left: 5px;
+}
+
+button {
+    margin-top: 5px;
+    padding: 5px 10px;
+    background-color: #4CAF50;
+    color: #fff;
+    border: none;
+    border-radius: 15px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #45a049;
+}
+

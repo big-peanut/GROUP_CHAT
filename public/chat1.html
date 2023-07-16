@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css"
+        href="https://fonts.googleapis.com/css?family=Roboto:300,400,500&display=swap">
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" type="text/css" href="chat1.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.4.0/axios.min.js"></script>
+    <title>CHAT</title>
+</head>
+
+<body>
+    <div class="chat-container">
+        <div class="chat-box"></div>
+        <div class="message-input">
+            <textarea id="message-input" rows="2" placeholder="Type your message..."></textarea>
+            <button id="send-button">Send</button>
+        </div>
+        <div class="create-group">
+            <input type="text" id="group-name-input" placeholder="Group Name">
+            <button id="create-group-button">Create Group</button>
+        </div>
+    </div>
+    <div class="groups-list">
+        <h2 class="groups-list-heading">Groups</h2>
+    </div>
+    <div class="users-container">
+        <h2>Group Users</h2>
+        <div id="group-users"></div>
+    </div>
+    <div class="users-list">
+        <h2 class="users-list-heading">Users</h2>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.2.0/socket.io.js"></script>
+
+    <script src="chat1.js"></script>
+</body>
+
+</html>

@@ -1,6 +1,6 @@
 const Messages = require('../models/message');
 const Users = require('../models/user');
-const Groups=require('../models/group')
+const Groups = require('../models/group')
 const sequelize = require('../util/db');
 const { Op } = require('sequelize');
 
@@ -23,7 +23,8 @@ exports.getMessage = async (req, res, next) => {
         const lastMsgId = req.query.lastmsgid || 0; // Get the last message ID from the query parameter
         const messages = await Messages.findAll({
             where: {
-                id: { [Op.gt]: lastMsgId }, // Fetch messages with ID greater than lastMsgId
+                id: { [Op.gt]: lastMsgId },
+                group_id: null // Fetch messages with ID greater than lastMsgId
             },
             include: [
                 {
@@ -56,7 +57,7 @@ exports.getMessage = async (req, res, next) => {
 exports.addGroupMessage = async (req, res, next) => {
     try {
         const groupId = req.params.groupId; // Get the group ID from the route parameter
-        const message = req.body.message;
+        const message = req.body.message.message;
 
         const data = await Messages.create({
             message,
@@ -74,6 +75,7 @@ exports.addGroupMessage = async (req, res, next) => {
 exports.getGroupMessages = async (req, res, next) => {
     try {
         const groupId = req.params.groupId; // Get the group ID from the route parameter
+        
         const messages = await Messages.findAll({
             where: { group_id: groupId }, // Filter messages by group ID
             include: [

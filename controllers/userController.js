@@ -6,7 +6,7 @@ const secretkey = "sandeepsundarlenka";
 
 exports.signup = async (req, res, next) => {
     try {
-        const { name, email,phone, password } = req.body;
+        const { name, email, phone, password } = req.body;
 
         const existingUser = await Users.findOne({ where: { email: email } });
 
@@ -20,7 +20,7 @@ exports.signup = async (req, res, next) => {
         const data = await Users.create({
             name: name,
             email: email,
-            phone:phone,
+            phone: phone,
             password: hash
         });
 
@@ -60,11 +60,16 @@ exports.login = async (req, res, next) => {
 
 exports.getUsers = async (req, res, next) => {
     try {
-      const users = await Users.findAll();
-      res.status(200).json({ users });
+        const users = await Users.findAll();
+        res.status(200).json({ users });
     } catch (error) {
-      console.log(error);
-      res.status(500).json({ error: 'Failed to fetch users' });
+        console.log(error);
+        res.status(500).json({ error: 'Failed to fetch users' });
     }
-  };
-  
+};
+
+exports.getUserIdName=(req,res,next)=>{
+    const name=req.user.name
+    res.status(200).json({name})
+}
+

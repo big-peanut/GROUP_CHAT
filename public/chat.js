@@ -6,6 +6,13 @@ const groupList = document.getElementById('group-list')
 const chatMessageElement = document.getElementById('chat-messages');
 const userListElement = document.getElementById('user-list');
 
+const socket=io('http://localhost:3000')
+
+socket.on("connect",()=>{
+    console.log("connected")
+})
+
+
 let selectedGroupId = null;
 
 async function removeGroupMember(userId) {
@@ -303,8 +310,14 @@ function displayMessages(messages) {
 }
 
 async function getMessage() {
+    const socketMsgs=[]
     try {
         const response = await axios.get('http://localhost:3000/user/getmessage');
+        socket.on('message',(msg)=>{
+            console.log(msg)
+            socketMsgs.push(msg)
+            displayMessages(socketMsgs)
+        })
         const messages = response.data.messages;
         if (messages.length > 0) {
             displayMessages(messages);
@@ -329,6 +342,7 @@ async function addMessage(message) {
                     headers: { 'Authorization': token },
                 }
             );
+            socket.emit('message',message)
         }
     } catch (err) {
         console.log(err);

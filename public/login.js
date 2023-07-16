@@ -12,7 +12,7 @@ async function login(email,password){
         if (response.data.message) {
             alert("User login successful");
             localStorage.setItem('token', response.data.token)
-            window.location.href = "chat.html"
+            window.location.href = "chat1.html"
         } else {
             const p = document.createElement('p')
             p.textContent = "Login failed. Incorrect password or email not registered."
