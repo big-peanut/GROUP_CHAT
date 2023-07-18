@@ -12,4 +12,6 @@ router.get('/getusers',controller.getUsers)
 
 router.get('/getUserIdName',userAuthenticate.authenticate,controller.getUserIdName)
 
+router.delete('/deleteuser/:userId',userAuthenticate.authenticate,controller.deleteUser)
+
 module.exports=router

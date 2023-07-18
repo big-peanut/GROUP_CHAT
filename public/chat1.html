@@ -8,6 +8,8 @@
         href="https://fonts.googleapis.com/css?family=Roboto:300,400,500&display=swap">
     <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <link rel="stylesheet" type="text/css" href="chat1.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.4.0/axios.min.js"></script>
     <title>CHAT</title>
 </head>
@@ -16,9 +18,11 @@
     <div class="chat-container">
         <div class="chat-box"></div>
         <div class="message-input">
+            <input type="file" id="file-input" name="file">
             <textarea id="message-input" rows="2" placeholder="Type your message..."></textarea>
             <button id="send-button">Send</button>
-        </div>
+          </div>
+          
         <div class="create-group">
             <input type="text" id="group-name-input" placeholder="Group Name">
             <button id="create-group-button">Create Group</button>

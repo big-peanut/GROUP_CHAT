@@ -12,5 +12,6 @@ router.get('/getgroupusers/:group_id', groupController.getGroupUsers)
 router.get('/checkgroupmembership/:group_id', userauthenticate.authenticate, groupController.checkGroupMembership)
 router.put('/makegroupmemberadmin/:group_id/:user_id', userauthenticate.authenticate, groupController.makeGroupMemberAdmin);
 router.delete('/removegroupmember/:group_id/:user_id', userauthenticate.authenticate, groupController.removeGroupMember);
+router.get('/checkadminstatus/:group_id',userauthenticate.authenticate,groupController.checkAdmin)
 
 module.exports = router

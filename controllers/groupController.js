@@ -216,6 +216,27 @@ async function removeGroupMember(req, res) {
     }
 }
 
+async function checkAdmin(req, res) {
+    try {
+        const { group_id } = req.params;
+        const { id: user_id } = req.user;
+
+        const groupMember = await GroupMember.findOne({
+            where: { group_id, user_id },
+        });
+
+        if (groupMember && groupMember.is_admin) {
+            res.status(200).json({ isAdmin: true });
+        } else {
+            res.status(200).json({ isAdmin: false });
+        }
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ error: 'Failed to check admin status' });
+    }
+}
+
+
 
 
 
@@ -227,5 +248,6 @@ module.exports = {
     getGroupUsers,
     checkGroupMembership,
     makeGroupMemberAdmin,
-    removeGroupMember
+    removeGroupMember,
+    checkAdmin
 };

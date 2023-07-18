@@ -5,6 +5,7 @@ const usersList = document.querySelector('.users-list');
 const createGroupButton = document.getElementById('create-group-button')
 const groupNameInput = document.getElementById('group-name-input')
 const groupsList = document.querySelector('.groups-list');
+const fileInput = document.getElementById('file-input');
 
 
 let selectedGroupId = null;
@@ -44,15 +45,30 @@ socket.on('message', (msg) => {
 });
 
 function displayMessage(msg, type) {
-    
-        const messageElement = document.createElement('div');
-        messageElement.classList.add('message', type);
-        const messageContent = document.createElement('div');
-        messageContent.classList.add('message-content');
-        messageContent.innerText = `${msg.sender} : ${msg.message}`;
-        messageElement.appendChild(messageContent);
-        chatBox.appendChild(messageElement);
+    const messageElement = document.createElement('div');
+    messageElement.classList.add('message', type);
 
+    const messageContent = document.createElement('div');
+    messageContent.classList.add('message-content');
+
+    if (isURL(msg.message)) {
+        const linkElement = document.createElement('a');
+        linkElement.href = msg.message;
+        linkElement.target = '_blank';
+        linkElement.rel = 'noopener noreferrer';
+        linkElement.innerText = `${msg.sender}: ${msg.message}`;
+
+        messageContent.appendChild(linkElement);
+    } else {
+        messageContent.innerText = `${msg.sender}: ${msg.message}`;
+    }
+
+    messageElement.appendChild(messageContent);
+    chatBox.appendChild(messageElement);
+}
+
+function isURL(message) {
+    return message.startsWith('http://') || message.startsWith('https://');
 }
 
 
@@ -97,15 +113,62 @@ async function getMessage() {
 }
 
 async function getUsers() {
-    const response = await axios.get('http://localhost:3000/getusers');
-    const users = response.data.users;
+    try {
+        const token = localStorage.getItem('token');
+        const currentUser = await axios.get('http://localhost:3000/getUserIdName', {
+            headers: { 'Authorization': token }
+        });
+        const currentUserName = currentUser.data.name;
+
+        const response = await axios.get('http://localhost:3000/getusers');
+        const users = response.data.users;
+
+        for (let i = 0; i < users.length; i++) {
+            const user = users[i];
+
+            if (user.name === currentUserName) {
+                user.isCurrentUser = true; // Add isCurrentUser flag for the current user
+            }
+
+            const userElement = document.createElement('div');
+            userElement.classList.add('user');
+            userElement.innerText = user.name;
+
+            // Create "Delete User" button only for users other than the current user
+            if (!user.isCurrentUser) {
+                const deleteUserButton = document.createElement('button');
+                deleteUserButton.innerText = 'Delete User';
+                deleteUserButton.setAttribute('data-user-id', user.id);
+                deleteUserButton.addEventListener('click', deleteUser);
+                userElement.appendChild(deleteUserButton);
+            }
+
+            usersList.appendChild(userElement);
+        }
+    } catch (error) {
+        console.log(error);
+    }
+}
 
 
-    for (let i = 0; i < users.length; i++) {
-        const userElement = document.createElement('div');
-        userElement.classList.add('user');
-        userElement.innerText = users[i].name;
-        usersList.appendChild(userElement);
+
+async function deleteUser(event) {
+    try {
+        const userId = event.target.getAttribute('data-user-id');
+        console.log(userId)
+        const confirmDelete = confirm('Are you sure you want to delete this user?');
+        if (confirmDelete) {
+            const token = localStorage.getItem('token');
+            await axios.delete(`http://localhost:3000/deleteuser/${userId}`, {
+                headers: { 'Authorization': token },
+            });
+            alert('User deleted successfully');
+            // Refresh the user list after deleting the user
+            usersList.innerHTML = '';
+            getUsers();
+        }
+    } catch (error) {
+        console.log(error);
     }
 }
 
@@ -203,40 +266,70 @@ async function enterGroup(event) {
         alert('You need to be a member of the group to enter.');
     }
 }
+
 async function inviteMember(event) {
-    const userName = prompt('Enter the name of the user to invite:');
-    if (userName) {
-        const groupId = event.target.getAttribute('data-group-id');
-        console.log(groupId);
-        try {
-            const token = localStorage.getItem('token');
-            await axios.post(
-                `http://localhost:3000/invite/${groupId}`,
-                { userName },
-                {
-                    headers: { 'Authorization': token },
-                }
-            );
-            alert('User invited successfully.');
-            // Update group users after inviting a member
-            await displayGroupUsers(groupId);
-        } catch (error) {
-            console.log(error);
-        }
-    }
-}
-async function deleteGroup(event) {
-    const groupId = event.target.getAttribute('data-group-id');
     try {
-        const token = localStorage.getItem('token');
-        await axios.delete(`http://localhost:3000/deletegroup/${groupId}`, {
-            headers: { 'Authorization': token },
-        });
-        getGroups(); // Fetch and display the updated group list
+        const groupId = event.target.getAttribute('data-group-id');
+        const isMember = await checkGroupMembership(groupId);
+
+        if (isMember) {
+            const isAdmin = await checkAdminStatus(groupId);
+
+            if (isAdmin) {
+                const userName = prompt('Enter the name of the user to invite:');
+                if (userName) {
+                    console.log(groupId);
+
+                    const token = localStorage.getItem('token');
+                    await axios.post(
+                        `http://localhost:3000/invite/${groupId}`,
+                        { userName },
+                        {
+                            headers: { 'Authorization': token },
+                        }
+                    );
+                    alert('User invited successfully.');
+                    // Update group users after inviting a member
+                    await displayGroupUsers(groupId);
+                }
+            } else {
+                alert('You need to be an admin to invite members.');
+            }
+        } else {
+            alert('You have to be a member to invite people.');
+        }
     } catch (error) {
         console.log(error);
     }
 }
+
+async function deleteGroup(event) {
+    try {
+        const groupId = event.target.getAttribute('data-group-id');
+        const isMember = await checkGroupMembership(groupId);
+        if (isMember) {
+            const isAdmin = await checkAdminStatus(groupId);
+
+            if (isAdmin) {
+                const confirmDelete = confirm('Are you sure you want to delete the group?');
+                if (confirmDelete) {
+                    const token = localStorage.getItem('token');
+                    await axios.delete(`http://localhost:3000/deletegroup/${groupId}`, {
+                        headers: { 'Authorization': token },
+                    });
+                    getGroups();
+                }
+            } else {
+                alert('You need to be an admin to delete the group.');
+            }
+        } else {
+            alert('You have to be a member to delete the group.');
+        }
+    } catch (error) {
+        console.log(error);
+    }
+}
+
 
 async function displayGroupUsers(groupId) {
     try {
@@ -367,11 +460,12 @@ async function getGroupMessages(groupId) {
 }
 
 async function displayGroupMessages(messages) {
-    const token = localStorage.getItem('token')
+    const token = localStorage.getItem('token');
     const currentUser = await axios.get('http://localhost:3000/getUserIdName', {
         headers: { 'Authorization': token }
     });
     const sender = currentUser.data.name;
+
     for (let i = 0; i < messages.length; i++) {
         const message = messages[i];
         const messageElement = document.createElement('div');
@@ -385,11 +479,55 @@ async function displayGroupMessages(messages) {
 
         const messageContent = document.createElement('div');
         messageContent.classList.add('message-content');
-        messageContent.innerText = `${message.sender}: ${message.message}`;
+
+        if (isURL(message.message)) {
+            const linkElement = document.createElement('a');
+            linkElement.href = message.message;
+            linkElement.target = '_blank';
+            linkElement.rel = 'noopener noreferrer';
+            linkElement.innerText = `${message.sender}: ${message.message}`;
+
+            messageContent.appendChild(linkElement);
+        } else {
+            messageContent.innerText = `${message.sender}: ${message.message}`;
+        }
 
         messageElement.appendChild(messageContent);
         chatBox.appendChild(messageElement);
     }
+}
+
+async function checkAdminStatus(groupId) {
+    try {
+        const token = localStorage.getItem('token');
+        const response = await axios.get(
+            `http://localhost:3000/checkadminstatus/${groupId}`,
+            {
+                headers: { 'Authorization': token },
+            }
+        );
+
+        return response.data.isAdmin;
+    } catch (error) {
+        console.log(error);
+        return false;
+    }
+}
+
+fileInput.addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    const link = await uploadFile(file);
+    sendMessage(link)
+})
+
+async function uploadFile(file) {
+    const token = localStorage.getItem('token')
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await axios.post('http://localhost:3000/upload', formData, { headers: { 'Authorization': token } })
+    console.log(response.data.name)
+    return response.data.result.Location
+
 }
 
 document.addEventListener('DOMContentLoaded', () => {

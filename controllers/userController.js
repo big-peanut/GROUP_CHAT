@@ -68,8 +68,25 @@ exports.getUsers = async (req, res, next) => {
     }
 };
 
-exports.getUserIdName=(req,res,next)=>{
-    const name=req.user.name
-    res.status(200).json({name})
+exports.getUserIdName = (req, res, next) => {
+    const name = req.user.name
+    res.status(200).json({ name })
 }
+
+exports.deleteUser = async (req, res, next) => {
+    try {
+        const userId = req.params.userId;
+        const user = await Users.findOne({ where: { id: userId } });
+
+        if (!user) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        await user.destroy();
+        res.status(200).json({ message: "User deleted successfully" });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ error: "Failed to delete user" });
+    }
+};
 
